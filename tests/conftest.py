@@ -1,4 +1,16 @@
 #!/usr/bin/env python3
+# Para ver como o pytest está configurando sys.path, adicione temporariamente no início de tests/conftest.py
+import sys, pprint
+pprint.pprint(sys.path)
+
+import os
+import sys
+
+# garante que o root do projeto (pai da pasta tests) esteja no sys.path
+ROOT = os.path.dirname(os.path.dirname(__file__))  # one level up from tests/
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
+
 """
 <summary>
 Conftest para pytest. Executa ações globais antes da coleta/execução de testes.
