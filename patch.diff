@@ -1,0 +1,124 @@
+--- patch.diff start --- *** Begin Patch *** Add File: pages/init.py +#!/usr/bin/env python3 +""" +
+
++Pacote pages: contém objetos de página (Page Objects) do aplicativo. +Este arquivo torna 'pages' um pacote para imports estáveis durante testes. +
++""" +# Intencionalmente simples: apenas torna o diretório um package Python. + *** End Patch *** Begin Patch *** Add File: tests/init.py +#!/usr/bin/env python3 +""" +
++Pacote tests: facilita imports absolutos em fixtures e conftest. +Arquivo vazio por compatibilidade entre ambientes (IDE/pytest). +
++""" + *** End Patch *** Begin Patch *** Add File: requirements.txt +appium-python-client==3.7.0 +selenium==4.14.0 +behave==1.2.7 +pytest==8.4.2 +pytest-mock==3.11.1 +requests==2.31.0 + +# Observação: versões sugeridas testadas durante o desenvolvimento local. +# Ajuste as versões conforme política da sua organização. + *** End Patch *** Begin Patch *** Add File: tests/test_login_steps_fallback.py +#!/usr/bin/env python3 +""" +
++Unit tests para validar comportamento de fallback do step_enter_credentials. +Simula cenários onde a primeira tentativa de inserir o username falha com TimeoutException, +então o step deve abrir menu -> abrir login do menu -> re-tentar inserir credenciais. +
++""" +from unittest.mock import Mock +import pytest +from selenium.common.exceptions import TimeoutException + +# Importa diretamente a função de steps (caminho relativo no repo) +from features.steps.login_steps import step_enter_credentials + + +class DummyContext:
+pass
++def test_step_enter_credentials_falls_back_to_menu():
+
+"""
+Simula: enter_username falha na primeira chamada (TimeoutException) e tem sucesso na segunda.
+Verifica que open_menu e open_login_from_menu foram chamados.
+"""
+ctx = DummyContext()
+mock_page = Mock()
+Simula: primeira chamada levanta TimeoutException, segunda chamada succeed
+mock_page.enter_username.side_effect = [TimeoutException("initial"), None]
+mock_page.enter_password.return_value = None
+mock_page.open_menu.return_value = None
+mock_page.open_login_from_menu.return_value = None
+ctx.login_page = mock_page
+Executa o step; não deve propagar exceção
+step_enter_credentials(ctx, "usuarioX", "senhaX")
+Asserções:
+assert mock_page.enter_username.call_count == 2
+mock_page.open_menu.assert_called_once()
+mock_page.open_login_from_menu.assert_called_once()
+mock_page.enter_password.assert_called_once_with("senhaX")
+*** End Patch *** Begin Patch *** Add File: tests/test_login_steps_home_screen.py +#!/usr/bin/env python3 +""" +
+
++Testes unitários para wait_for_any_locator e step_verify_home_screen. +Monkeypatcha WebDriverWait no módulo de steps para simular diferentes resultados. +
++""" +import types +import pytest +from selenium.common.exceptions import TimeoutException + +import features.steps.login_steps as ls_mod + + +class DummyWait:
+"""Dummy substituto de WebDriverWait. Controla qual instância terá sucesso."""
+calls = []
+success_call_index = None
+def init(self, driver, timeout):
+   DummyWait.calls.append(1)
+   self._index = len(DummyWait.calls)
+def until(self, condition):
+   if DummyWait.success_call_index is not None and DummyWait.success_call_index == self._index:
+       return True
+   raise TimeoutException("simulated timeout")
++@pytest.fixture(autouse=True) +def reset_dummy():
+
+DummyWait.calls.clear()
+DummyWait.success_call_index = None
+yield
+DummyWait.calls.clear()
+DummyWait.success_call_index = None
++def test_verify_home_screen_succeeds_with_first_locator(monkeypatch):
+
+DummyWait.success_call_index = 1
+monkeypatch.setattr(ls_mod, "WebDriverWait", DummyWait)
+ctx = types.SimpleNamespace()
+ctx.driver = object()
+ls_mod.step_verify_home_screen(ctx)
++def test_verify_home_screen_succeeds_with_second_locator(monkeypatch):
+
+DummyWait.success_call_index = 2
+monkeypatch.setattr(ls_mod, "WebDriverWait", DummyWait)
+ctx = types.SimpleNamespace()
+ctx.driver = object()
+ls_mod.step_verify_home_screen(ctx)
++def test_verify_home_screen_failure_captures_artifacts(monkeypatch):
+
+DummyWait.success_call_index = None
+monkeypatch.setattr(ls_mod, "WebDriverWait", DummyWait)
+captured = {"flag": False}
+class FakeLoginPage:
+   def _capture_debug_artifacts(self, prefix=None):
+       captured["flag"] = True
+ctx = types.SimpleNamespace()
+ctx.driver = object()
+ctx.login_page = FakeLoginPage()
+with pytest.raises(TimeoutException):
+   ls_mod.step_verify_home_screen(ctx)
+assert captured["flag"] is True
+*** End Patch *** Begin Patch *** Delete File: README.md *** End Patch *** Begin Patch *** Add File: README.md +# DesafioQA_MobileBddAppiumPython + +Descrição, pré‑requisitos, instalação e execução (completa) — versão atualizada. + +## Resumo +Suíte de testes para o aplicativo Sauce Labs Demo (APK em resources/mda-2.2.0-25.apk). +Inclui Page Objects (Appium + Selenium), testes unitários (pytest) e testes BDD (Behave). + +## Pré-requisitos +- Python 3.10+ (3.12 recomendado) +- Node.js + Appium (npm install -g appium) +- Android SDK / Emulador / Device com adb no PATH + +## Instalação +1. Criar ambiente virtual: +bash +python -m venv .venv +source .venv/bin/activate # Linux / Mac +.venv\Scripts\activate # Windows PowerShell + +2. Instalar dependências: +bash +pip install -r requirements.txt + + +## Executar testes unitários +bash +pytest -q + + +## Executar testes BDD (Behave) +1. Start Appium server: appium +2. Start emulator or connect device: adb devices +3. Rodar: +bash +behave -f pretty + + +## Estrutura do projeto (principais entradas) +``` +.git/ +features/
+
+└─ steps/login_steps.py +pages/
+└─ login_page.py +resources/
+└─ mda-2.2.0-25.apk +tests/
+└─ test_*.py +requirements.txt +README.md +```
++## CI e artifacts +O workflow do GitHub Actions (.github/workflows/python-tests.yml) agora: +- roda pytest, +- faz upload da pasta artifacts/ (screenshots / page_source) via actions/upload-artifact para depuração em caso de falhas. + +## Troubleshooting +- Se pytest falhar com ModuleNotFoundError para tests, rode a partir do root (recomendado) e certifique-se de que tests/__init__.py existe. +- Em falhas de sincronia, verifique arquivos em artifacts/. + +## Contribuição +- Fork -> branch -> PR com testes e documentação. + *** End Patch *** Begin Patch *** Delete File: .github/workflows/python-tests.yml *** End Patch *** Begin Patch *** Add File: .github/workflows/python-tests.yml +name: Python tests + +on:
+
+push:
+branches: [ main ]
+pull_request:
+branches: [ main ]
++jobs:
+
+tests:
+runs-on: ubuntu-latest
+steps:
+ - name: Checkout repository
+   uses: actions/checkout@v4
+ - name: Set up Python
+   uses: actions/setup-python@v4
+   with:
+     python-version: '3.12'
+ - name: Install dependencies
+   run: |
+     python -m pip install --upgrade pip
+     pip install -r requirements.txt
+ - name: Run pytest
+   id: pytest
+   run: |
+     pytest -q || true
+   # keep job from failing immediately so upload step runs; final status checked below
+ - name: Upload artifacts folder
+   if: always()
+   uses: actions/upload-artifact@v3
+   with:
+     name: test-artifacts
+     path: artifacts/**
+ - name: Fail if pytest failed
+   if: always()
+   run: |
+     # Fail job if pytest failed (exit non-zero if return code non-zero)
+     # We rerun pytest to obtain exit code (cheap), or parse previous logs if desired.
+     pytest -q
+*** End Patch *** End Patch --- patch.diff end ---
