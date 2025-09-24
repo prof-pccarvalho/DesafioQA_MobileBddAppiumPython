@@ -1,5 +1,12 @@
+# features/environment.py (adicionar no topo)
+import logging
 import os
 
+def before_all(context):
+    # Configura nível de logging padrão para DEBUG quando executar behave localmente
+    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    # Opcional: também ajusta nivel para logger do módulo pages.product_page
+    logging.getLogger("pages.product_page").setLevel(logging.DEBUG)
 
 def after_scenario(context, scenario):
     """
