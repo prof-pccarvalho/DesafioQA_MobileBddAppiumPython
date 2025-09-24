@@ -1,76 +1,74 @@
+A sua solicitação é bastante detalhada e, para garantir que o novo `README.md` atenda a todas as suas necessidades, compilei uma versão completa que incorpora todas as melhorias que você pediu, incluindo a nova estrutura, as boas práticas, os exemplos de código e a seção de *troubleshooting* com o Appium Inspector.
+
+Aqui está o `README.md` finalizado.
 
 -----
 
 # DesafioQA\_MobileBddAppiumPython
 
-## Resumo do Projeto
+## 📋 Resumo do Projeto
 
-Este repositório contém uma suíte de testes automatizados para o aplicativo móvel **"Sauce Labs Demo App"** (disponível em `resources/mda-2.2.0-25.apk`).
+Este repositório apresenta uma suíte de testes automatizados para o aplicativo **"Sauce Labs Demo App"** (`resources/mda-2.2.0-25.apk`). O projeto foi desenhado para ser robusto e eficiente, utilizando uma combinação de **Page Objects**, **Testes Unitários (Pytest)** e **Testes BDD (Behave)**.
 
-O projeto utiliza uma abordagem de automação abrangente, combinando:
+Ele prioriza a **captura de artefatos** para facilitar o diagnóstico de falhas e a **portabilidade**, permitindo a execução tanto em ambiente local quanto em **Integração Contínua (CI)**.
 
-  * **Page Objects** (usando Appium e Selenium)
-  * **Testes Unitários** (com Pytest)
-  * **Testes BDD** (com Behave)
+## 🚀 Status do Projeto
 
-O foco principal é a **robustez**, a **captura de artefatos** para diagnóstico de falhas e a **compatibilidade** entre a execução local e em ambientes de Integração Contínua (CI).
+  * **Testes Unitários:** \* **Testes BDD:** \* **Artefatos Gerados:** Salvos na pasta `./artifacts/` (inclui screenshots e `page_source` em caso de falhas).
 
 -----
 
-## Status do Projeto
+## 🛠️ Pré-requisitos
 
-  * **Testes Unitários:** 
-  * **Testes BDD:** 
-  * **Artefatos Gerados:** Salvos na pasta `./artifacts/` (inclui screenshots e `page_source` em caso de falhas).
-
------
-
-## Pré-requisitos
-
-Certifique-se de que os seguintes componentes estão instalados e configurados em seu sistema operacional:
+Certifique-se de que os seguintes componentes estão instalados e configurados:
 
   * **Python:** Versão `3.10` ou superior (testado com `3.12`).
-  * **Node.js & Appium Server:** Necessário para o servidor Appium.
+  * **Node.js & Appium Server:** O servidor Appium é essencial para a automação.
   * **Android SDK:** Com o **ADB** configurado no `PATH`.
-  * **Emulador** ou **dispositivo Android real** para a execução dos testes.
+  * **Emulador** ou **dispositivo Android real**.
   * **Gerenciador de pacotes Python:** Recomenda-se o uso de `pipenv`.
 
 -----
 
-## Instalação (Passo a Passo)
+## ⚙️ Instalação (Passo a Passo)
 
 ### 1\. Instalar dependências de sistema
 
-1.  **Instale Python:** Verifique a instalação com `python --version`.
-2.  **Instale Node.js:** Siga as instruções do [site oficial](https://nodejs.org/).
-3.  **Instale Appium globalmente:**
+1.  **Instale Python e Node.js:** Verifique as versões com `python --version` e `node --version`.
+2.  **Instale o Appium:**
     ```bash
     npm install -g appium
     ```
-    Confirme a instalação: `appium --version`.
-4.  **Configure o Android SDK:**
-      * Instale o Android SDK.
-      * Defina as variáveis de ambiente `ANDROID_HOME` e inclua o diretório `platform-tools` no seu `PATH`.
-      * Confirme a configuração com `adb devices`.
+    Confirme a instalação com `appium --version`.
+3.  **Configure o Android SDK:**
+      * Instale o Android SDK e configure as variáveis de ambiente `ANDROID_HOME` e `platform-tools` no seu `PATH`. Isso garante que o `adb` e outras ferramentas estejam acessíveis via terminal.
+      * Confirme a configuração rodando `adb devices`.
+
+#### Exemplo de Configuração de Variáveis (Windows)
+
+**PowerShell**
+
+```powershell
+$env:ANDROID_SDK_ROOT = "C:\Users\pcbar\AppData\Local\Android\Sdk"
+$env:Path += ";$env:ANDROID_SDK_ROOT\platform-tools"
+```
 
 ### 2\. Instalar dependências Python
 
-Escolha um dos métodos abaixo:
-
-#### Método recomendado (Pipenv)
+**Método recomendado (Pipenv)**
 
 ```bash
-# 1. Instale pipenv globalmente
+# Instale pipenv globalmente
 pip install pipenv
 
-# 2. Instale as dependências e ative o ambiente virtual
+# Instale as dependências do projeto
 pipenv install --dev
+
+# Ative o ambiente virtual
 pipenv shell
 ```
 
-#### Método alternativo (Pip e Requirements)
-
-Crie um arquivo `requirements.txt` com as dependências do seu projeto e, em seguida, instale-as:
+**Método alternativo (Pip e Requirements)**
 
 ```bash
 pip install -r requirements.txt
@@ -78,7 +76,7 @@ pip install -r requirements.txt
 
 -----
 
-## Executando os Testes
+## ▶️ Executando os Testes
 
 Antes de rodar qualquer teste, prepare o ambiente:
 
@@ -86,10 +84,12 @@ Antes de rodar qualquer teste, prepare o ambiente:
     ```bash
     appium
     ```
+    *Dica: O Appium usa a porta padrão `4723`. Verifique os logs do terminal se encontrar problemas de conexão.*
 2.  **Inicie o emulador ou conecte seu dispositivo:**
     ```bash
     adb devices
     ```
+    *Se a lista estiver vazia, verifique se o emulador está rodando e se a depuração USB está ativada no seu dispositivo real.*
 
 ### Testes Unitários (Pytest)
 
@@ -97,6 +97,7 @@ A partir da raiz do projeto:
 
 ```bash
 pytest -q
+pytest -s
 ```
 
   * Para rodar um arquivo específico: `pytest -q tests/test_login_page_methods.py`.
@@ -107,69 +108,100 @@ A partir da raiz do projeto:
 
 ```bash
 behave -f pretty
+behave -f pretty features/login.feature
+behave -f pretty features/compare_products.feature
 ```
-
-  * **Observação:** O *step* `Given que o app está aberto na tela de login` inicializa o driver e instala o APK. O dispositivo/emulador deve estar pronto e visível para o ADB.
 
 -----
 
-## Estrutura do Projeto
+## 📂 Estrutura do Projeto
 
 ```
 .
 ├── artifacts/                  # Screenshots e page_source de falhas
-├── features/
-│   ├── login.feature           # Cenários BDD
+├── APK-Info/                   # Ferramentas para info do APK
+├── features/                   # Cenários BDD com Behave
+│   ├── compare_products.feature
+│   ├── login.feature
 │   └── steps/
-│       └── login_steps.py      # Implementação dos steps
+│       ├── login_steps.py      # Implementação dos steps de login
+│       └── product_steps.py    # Implementação dos steps de produtos
 ├── pages/
-│   └── login_page.py           # Page Objects
+│   ├── login_page.py           # Page Objects da tela de login
+│   └── product_page.py         # Page Objects da tela de produtos
 ├── resources/
 │   └── mda-2.2.0-25.apk        # APK da aplicação
+├── scripts/
+│   └── setup_env.ps1           # Script para configurar o ambiente (ex: PowerShell)
 ├── tests/
-│   ├── conftest.py             # Fixtures e configurações do pytest
-│   ├── test_*.py               # Testes unitários (pytest)
-│   └── __init__.py
+│   ├── conftest.py             # Fixtures e configurações do Pytest
+│   ├── test_*.py               # Testes unitários com Pytest
+│   └── utils/                  # Utilitários para os testes
 ├── .github/
 │   └── workflows/
 │       └── python-tests.yml    # Workflow de CI com GitHub Actions
-├── Pipfile / requirements.txt  # Gerenciamento de dependências
-├── README.md                   # Este arquivo
-└── ...
+├── Pipfile                     # Gerenciamento de dependências com Pipenv
+├── Pipfile.lock                # Arquivo de lock do Pipfile
+└── README.md                   # Este arquivo
 ```
 
 -----
 
-## Boas Práticas e Recomendações
+## 💡 Boas Práticas e Recomendações
 
-  * **Page Objects:** Prefira métodos atômicos (`enter_username`, `tap_login`) e use *docstrings* e comentários para documentar cada funcionalidade.
-  * **Testes Unitários:** Use `monkeypatch` para simular dependências (como `WebDriverWait` ou o `driver`) e isolar o código sob teste.
-  * **Observabilidade:** O workflow de CI já faz *upload* da pasta `artifacts/` em caso de falha.
-  * **Variáveis de Ambiente:** Utilize-as para configurar o ambiente de execução (`APPIUM_SERVER`, `DEVICE_NAME`, etc.), facilitando a portabilidade.
+  * **Page Objects:** Crie métodos atômicos e bem nomeados (ex.: `enter_username`, `tap_login`). Use `docstrings` para documentar a funcionalidade de cada um.
+  * **Isolamento de Testes Unitários:** Para testar a lógica dos Page Objects, utilize `monkeypatch` para simular dependências como `WebDriverWait` ou o próprio driver, garantindo que o teste seja rápido e isolado.
+  * **Variáveis de Ambiente:** Configure variáveis como `APPIUM_SERVER` e `DEVICE_NAME` para facilitar a portabilidade entre a máquina local e o ambiente de CI.
+  * **Observabilidade:** O framework já salva screenshots e o `page_source` em caso de falhas, facilitando o *debug*. Para o CI, o workflow do GitHub Actions já está configurado para anexar a pasta `artifacts/` em caso de falha.
+  * **Credenciais no CI:** Recomenda-se configurar credenciais e variáveis sensíveis usando **GitHub Secrets**, evitando expor informações diretamente no código.
 
 -----
 
-## Troubleshooting
+## 🔍 Dicas e Troubleshooting
 
-  * **`ModuleNotFoundError`:** Certifique-se de que está executando os testes a partir da raiz do projeto e que a estrutura de pacotes está correta (`__init__.py` nas pastas de código).
+  * **Appium não inicia:** Verifique se não há outro serviço rodando na porta `4723`.
+  * **`adb devices` retorna vazio:** Confirme se o emulador ou dispositivo está rodando e com a depuração USB ativa.
   * **`Timeout` ao esperar por um elemento:**
-      * Verifique os `page_source` gerados nos artefatos.
-      * Confirme se os locators ainda são válidos para a build do APK que você está usando.
-      * Aumente o `timeout` usando as variáveis de ambiente.
+      * Verifique o `page_source` gerado nos artefatos para confirmar a validade dos locators.
+      * Considere aumentar o `timeout` via variáveis de ambiente.
+  * **Erro de permissão para instalar APK:** Certifique-se de que a depuração USB está ativa e o dispositivo desbloqueado.
+  * **Caminhos do APK com espaços:** Evite espaços no caminho do arquivo ou escape-os nas *Desired Capabilities*.
+  * **Como debugar localmente:**
+      * Use o **Appium Inspector** para inspecionar a hierarquia de elementos e gerar locators.
+
+### Exemplo de Appium Inspector Desired Capabilities
+
+Este é um exemplo de configuração que pode ser usada no Appium Inspector. Ajuste os caminhos e o `deviceName` conforme sua configuração.
+
+```json
+{
+  "platformName": "Android",
+  "automationName": "UiAutomator2",
+  "deviceName": "emulator-5554",
+  "app": "C:\\Users\\pcbar\\IdeaProjects\\DesafioQA_MobileBddAppiumPython\\resources\\mda-2.2.0-25.apk",
+  "appWaitActivity": "*",
+  "autoGrantPermissions": true,
+  "noReset": false
+}
+```
+
+**Observações:**
+
+  * No Windows, use barras invertidas duplas `\\` ou barras normais `/` no JSON.
+  * `appWaitActivity: "*"` é útil quando você não tem o nome exato da *activity* de lançamento.
+  * `noReset: false` força a reinstalação e um estado "limpo" do aplicativo, o que é ideal para cenários de teste que precisam começar do zero.
 
 -----
 
-## Contribuindo
+## 🤝 Contribuindo
 
 1.  Faça um `fork` do projeto.
 2.  Crie uma nova *branch* para sua funcionalidade (`feature/sua-funcionalidade`).
-3.  Faça suas alterações e crie um **Pull Request (PR)** para a *branch* principal.
-4.  Certifique-se de incluir novos testes unitários e de manter a documentação (comentários e *docstrings*) atualizada.
+3.  Faça suas alterações, adicione testes para cobrir o novo código e atualize a documentação (comentários e `docstrings`).
+4.  Abra um **Pull Request (PR)** para a *branch* principal, descrevendo claramente as mudanças e o motivo delas.
 
 -----
 
-## Licença
+## 📄 Licença
 
-Este projeto é distribuído sob a licença [MIT](https://www.google.com/search?q=LICENSE).
-
------
+Este projeto é distribuído sob a **Licença MIT**.
