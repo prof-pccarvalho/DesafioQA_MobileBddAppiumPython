@@ -1,0 +1,21 @@
+﻿# Python virtualenv
+.venv/
+
+# VSCode
+.vscode/
+
+# Pytest / artifacts
+.pytest_cache/
+artifacts/
+
+# Python compiled
+__pycache__/
+*.pyc
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Local env / logs
+.env
+*.log
