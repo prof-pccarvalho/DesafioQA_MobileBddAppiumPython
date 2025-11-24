@@ -1,7 +1,3 @@
-A sua solicitação é bastante detalhada e, para garantir que o novo `README.md` atenda a todas as suas necessidades, compilei uma versão completa que incorpora todas as melhorias que você pediu, incluindo a nova estrutura, as boas práticas, os exemplos de código e a seção de *troubleshooting* com o Appium Inspector.
-
-Aqui está o `README.md` finalizado.
-
 -----
 
 # DesafioQA\_MobileBddAppiumPython
